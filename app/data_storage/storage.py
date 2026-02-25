@@ -28,8 +28,11 @@ class KnowledgeStorage:
                 return
         self.conn.create_database(database_name)
 
-    def create_milvus_collection(self, collection_name):
-        self.conn.use_database(self.database_name)
+    def create_milvus_collection(self, collection_name, database_name: str = None):
+        if database_name:
+            self.conn.use_database(self.database_name)
+        else:
+            self.conn.use_database(self.database_name)
         if not self.conn.has_collection(collection_name):
             fields = [
                 FieldSchema(name="chunk_id", dtype=DataType.VARCHAR, max_length=65535, description="块id",is_primary=True),
@@ -77,15 +80,9 @@ class KnowledgeStorage:
 
 
 
-
-
-
-
-
-
-
 if __name__ == '__main__':
     knowledge_storage = KnowledgeStorage()
-    # knowledge_storage.drop_collection("TestInfo_4096")
-    knowledge_storage.create_milvus_collection("TestInfo_4096")
+    knowledge_storage.create_database("test_database") # 创建数据库
+    knowledge_storage.create_milvus_collection("TestInfo_4096") # 创建集合
+    # ---至此可以直接使用main.py中的接口了
 
