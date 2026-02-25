@@ -1,16 +1,11 @@
 # PDFtoMD
-import base64
 import os.path
 from typing import List
 
-from openai import OpenAI
-
-from app import config
 from app.schema import DocumentBaseModel
 
-from app.utils.files_operations import pdf_to_images, cleanup_files
 from app.utils.log_tools import logger
-from ocr_server.layout_ocr import ocr_pdf_to_markdown
+from app.ocr_server.layout_ocr import ocr_pdf_to_markdown
 
 
 

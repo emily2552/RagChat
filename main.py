@@ -19,8 +19,9 @@ from app.ptompts.rag_prompt import system_prompt, doc_prompt
 from app.schema import EmbeddingRequest, BaseChatConfig
 from app.service.embedding.embedding import EmbeddingModel
 from app.service.retriver import MilvusRetriever
+from app.utils.chat_tools import need_retrieval
 from app.utils.log_tools import logger
-from chat_llm import need_retrieval
+
 
 # ————— 初始化 FastAPI —————
 

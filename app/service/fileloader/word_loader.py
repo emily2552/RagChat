@@ -7,7 +7,7 @@ from pymilvus.client.abstract import logger
 from langchain_community.document_loaders import UnstructuredWordDocumentLoader
 from tqdm import tqdm
 from app.schema import DocumentBaseModel
-from ocr_server.image_ocr import get_ocr_result
+from app.ocr_server.image_ocr import get_ocr_result
 
 
 
@@ -41,10 +41,7 @@ class WordLoader:
 
         return image_bytes_list
 
-    import base64
     from typing import List
-    from io import BytesIO
-    from PIL import Image
 
     MIN_IMAGE_SIZE = 30
     MIN_IMAGE_BYTES = 1024

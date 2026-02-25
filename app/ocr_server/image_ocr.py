@@ -8,8 +8,8 @@ from sympy import false
 
 from app import config
 
-BIGMODEL_OCR_URL = "https://open.bigmodel.cn/api/paas/v4/files/ocr"
-BIGMODEL_API_KEY = "535e3be69676401d9520124f606b912b.J3JPERm50o6NpdDC"
+# BIGMODEL_OCR_URL = "https://open.bigmodel.cn/api/paas/v4/files/ocr"
+# BIGMODEL_API_KEY = "535e3be69676401d9520124f606b912b.J3JPERm50o6NpdDC"
 
 
 
