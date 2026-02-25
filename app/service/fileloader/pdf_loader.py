@@ -2,7 +2,7 @@
 import os.path
 from typing import List
 
-from app.schema import DocumentBaseModel
+from app.llm_models.schema import DocumentBaseModel
 
 from app.utils.log_tools import logger
 from app.ocr_server.layout_ocr import ocr_pdf_to_markdown

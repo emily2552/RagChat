@@ -5,7 +5,7 @@ from typing import List, Dict, Any
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from app.schema import ChunkModel
+from app.llm_models.schema import ChunkModel
 from app.utils.log_tools import logger
 
 

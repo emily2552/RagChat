@@ -1,14 +1,12 @@
-import os
 import re
 from typing import List
 
 from app import config
-from app.schema import DocumentBaseModel, ChunkModel
+from app.llm_models.schema import DocumentBaseModel, ChunkModel
 from app.service.embedding.embedding import EmbeddingModel
 from app.service.fileloader.pdf_loader import PDFLoader
 from app.service.splitter.parentchild_splitter import ParentChildSplitter
 from app.utils.log_tools import logger
-from app.utils.snowflake import generate_unique_id
 
 
 class DialogueDocumentSplitter(ParentChildSplitter):

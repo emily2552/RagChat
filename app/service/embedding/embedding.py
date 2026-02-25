@@ -1,10 +1,8 @@
-import json
 from typing import List
 
 import requests
 
 from app import config
-from app.schema import DocumentBaseModel
 from app.service.embedding.model_provider import construct_silicon_params
 from app.utils.log_tools import logger
 

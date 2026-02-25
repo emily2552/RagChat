@@ -2,10 +2,8 @@ from pymilvus import MilvusClient, AnnSearchRequest, RRFRanker
 from typing import List, Dict, Any
 
 from app import config
-from app.schema import ChunkModel
+from app.llm_models.schema import ChunkModel
 from app.service.embedding.embedding import EmbeddingModel
-from app.service.embedding.jina_embedding import JinaEmbeddings
-
 
 from app.service.reranker import Reranker
 from app.utils.log_tools import logger

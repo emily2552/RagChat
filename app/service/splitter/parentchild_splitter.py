@@ -1,6 +1,6 @@
 from typing import List, Union
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from app.schema import ChunkModel, DocumentBaseModel
+from app.llm_models.schema import ChunkModel, DocumentBaseModel
 from app.service.embedding.embedding import EmbeddingModel
 from app.service.embedding.jina_embedding import JinaEmbeddings
 from app.utils.log_tools import logger

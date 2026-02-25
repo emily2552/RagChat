@@ -1,13 +1,11 @@
-from typing import List, Optional, Union
-from langchain_text_splitters import MarkdownHeaderTextSplitter
+from typing import List, Union
 import numpy as np
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from app import config
-from app.schema import DocumentBaseModel, ChunkModel
+from app.llm_models.schema import DocumentBaseModel, ChunkModel
 from app.service.embedding.embedding import EmbeddingModel
-from app.service.fileloader.loader import UniversalFileLoader
 from app.service.fileloader.pdf_loader import PDFLoader
 from app.service.splitter.parentchild_splitter import ParentChildSplitter
 from app.utils.log_tools import logger

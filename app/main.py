@@ -13,10 +13,9 @@ from langchain_core.runnables import RunnableWithMessageHistory, RunnableConfig
 from langchain_core.chat_history import InMemoryChatMessageHistory
 
 # 假设这些是你项目中的模块，保持原样导入
-from app.config import model_config
 from app.data_storage.files_data_insert import process_file
 from app.ptompts.rag_prompt import system_prompt, doc_prompt
-from app.schema import EmbeddingRequest, BaseChatConfig
+from app.llm_models.schema import EmbeddingRequest, BaseChatConfig
 from app.service.embedding.embedding import EmbeddingModel
 from app.service.retriver import MilvusRetriever
 from app.utils.chat_tools import need_retrieval

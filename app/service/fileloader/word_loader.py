@@ -6,7 +6,7 @@ from PIL import Image
 from pymilvus.client.abstract import logger
 from langchain_community.document_loaders import UnstructuredWordDocumentLoader
 from tqdm import tqdm
-from app.schema import DocumentBaseModel
+from app.llm_models.schema import DocumentBaseModel
 from app.ocr_server.image_ocr import get_ocr_result
 
 

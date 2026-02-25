@@ -3,7 +3,7 @@ from typing import Optional, List
 from pymilvus import MilvusClient
 
 from app import config
-from app.schema import ChunkModel
+from app.llm_models.schema import ChunkModel
 from app.utils.log_tools import logger
 
 

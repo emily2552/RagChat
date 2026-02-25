@@ -1,6 +1,6 @@
 from typing import List
 
-from app.schema import DocumentBaseModel, ChunkModel
+from app.llm_models.schema import DocumentBaseModel, ChunkModel
 from app.service.fileloader.word_loader import WordLoader
 from app.service.splitter.parentchild_splitter import ParentChildSplitter
 

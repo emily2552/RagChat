@@ -8,9 +8,8 @@ from tqdm import tqdm
 
 from app import config
 from app.data_storage.milvus_operation import MilvusOperator
-from app.schema import ChunkModel
+from app.llm_models.schema import ChunkModel
 from app.service.embedding.embedding import EmbeddingModel
-from app.service.embedding.jina_embedding import JinaEmbeddings
 from app.utils.log_tools import logger
 from app.utils.snowflake import generate_unique_id
 
