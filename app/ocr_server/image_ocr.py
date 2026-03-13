@@ -19,8 +19,8 @@ def get_ocr_result(image_base64: str):
     b64_image = "data:image/jpeg;base64," + image_base64
 
     # 👇 2. 构造 API 请求
-    url = "https://api.z.ai/api/paas/v4/chat/completions"  # 示例 API 端点，替换成你的服务地址
-    api_key = config.glm_config["api_key"]                        # 把这个替换成你自己的 API Key
+    url = config.glm_config["base_url"]
+    api_key = config.glm_config["api_key"]
 
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -29,7 +29,7 @@ def get_ocr_result(image_base64: str):
 
     # 👇 3. 构造 messages，包含图片和文本提示
     payload = {
-        "model": "glm-4v-flash",  # 或者你要使用的 GLM 多模态模型名称
+        "model": config.glm_config.get("model_name", "glm-4v-flash"),
         "messages": [
             {
                 "role": "user",
@@ -83,6 +83,5 @@ def ocr_by_path(image_path: str) -> str:
 
 if __name__ == "__main__":
     image_path = "/Users/emilyguo/Desktop/Snipaste_2026-01-19_09-38-31.png"
-
 
 

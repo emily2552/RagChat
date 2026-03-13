@@ -245,7 +245,7 @@ class MilvusRetriever:
 
 
 if __name__ == "__main__":
-    retriever = MilvusRetriever(collection_name="TestInfo_1024", database="test_database", embedding_model=EmbeddingModel(**config.embedding_config))
+    retriever = MilvusRetriever(collection_name="haha", database="test_database", embedding_model=EmbeddingModel(**config.embedding_config))
     query = "Individuals Onboarding在哪一个界面的哪一个位置"
 
     results = retriever.hybrid_search(query=query)

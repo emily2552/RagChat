@@ -14,7 +14,7 @@ from app.utils.log_tools import logger
 
 
 class KnowledgeStorage:
-    dense_dim = 4096
+    dense_dim = 1024
     database_name = "test_database"
 
     def __init__(self):
@@ -82,7 +82,8 @@ class KnowledgeStorage:
 
 if __name__ == '__main__':
     knowledge_storage = KnowledgeStorage()
-    knowledge_storage.create_database("test_database") # 创建数据库
-    knowledge_storage.create_milvus_collection("TestInfo_4096") # 创建集合
+    # knowledge_storage.create_database("test_database") # 创建数据库
+    knowledge_storage.create_milvus_collection("TestInfo") # 创建集合
+    # knowledge_storage.drop_collection("TestInfo")
     # ---至此可以直接使用main.py中的接口了
 

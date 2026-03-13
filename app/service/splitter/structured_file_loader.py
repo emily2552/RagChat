@@ -89,7 +89,7 @@ class StructuredFileProcessor:
 
 if __name__ == "__main__":
     file_path = "/Users/emilyguo/Desktop/Onboarding资料.xlsx"
-    collection_name = "TestInfo_4096"
+    collection_name = "hah"
     embedding_model = EmbeddingModel(**config.embedding_config)
     processor = StructuredFileProcessor(file_path=file_path, embedding_model=embedding_model, collection_name=collection_name)
     chunks= list(processor.load_and_split())

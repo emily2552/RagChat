@@ -57,7 +57,7 @@ if __name__ == "__main__":
     # 获取文件夹中所有文件的路径
     # file_paths = get_all_file_paths(folder_path)
     embedding_model = EmbeddingModel(**config.embedding_config)
-    collection_name = "TestInfo_4096"
+    collection_name = "hah"
     # collection_name="TestInfo_1024"
     file_path = ["/Users/emilyguo/Desktop/TestFiles/Biz Onboarding 1205.pdf"]
 
