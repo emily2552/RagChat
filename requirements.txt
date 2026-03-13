@@ -50,7 +50,7 @@ jsonschema==4.26.0
 jsonschema-specifications==2025.9.1
 langchain==1.2.6
 langchain-classic==1.0.1
-langchain-community @ file:///Users/emilyguo/Downloads/langchain_community-0.4.1-py3-none-any.whl#sha256=2135abb2c7748a35c84613108f7ebf30f8505b18c3c18305ffaecfc7651f6c6a
+langchain-community
 langchain-core==1.2.7
 langchain-openai==1.1.7
 langchain-text-splitters==1.1.0
@@ -93,7 +93,7 @@ pymilvus==2.6.6
 pymilvus.model==0.3.2
 PyMuPDF==1.26.7
 pypdf==6.6.0
-PyPDF2 @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_1e8550qbx5/croot/pypdf2_1733841469135/work
+PyPDF2
 python-dateutil==2.9.0.post0
 python-docx==1.2.0
 python-dotenv==1.2.1
