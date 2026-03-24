@@ -1,61 +1,37 @@
-import json
-import requests
-import base64
 import os
-from pypdf import PdfReader, PdfWriter
+import time
 
-OCR_URL = "https://open.bigmodel.cn/api/paas/v4/layout_parsing"
-API_KEY = "535e3be69676401d9520124f606b912b.J3JPERm50o6NpdDC"
+import time
+from pathlib import Path
+from paddleocr import PPStructureV3
+from tqdm import tqdm
 
-MAX_SIZE_MB = 50
-MAX_PAGES = 100
-
-
-def _send_ocr(pdf_bytes):
-    b64 = base64.b64encode(pdf_bytes).decode()
-    payload = {"model": "GLM-OCR", "file": f"data:application/pdf;base64,{b64}"}
-    headers = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
-    r = requests.post(OCR_URL, json=payload, headers=headers)
-    r.raise_for_status()
-    return json.loads(r.text)["md_results"]
-
-
-def _check_pdf(file_path):
-    size_ok = os.path.getsize(file_path) / (1024 * 1024) <= MAX_SIZE_MB
-    pages_ok = len(PdfReader(file_path).pages) <= MAX_PAGES
-    return size_ok and pages_ok
-
-
-def _split_pdf(file_path):
-    reader = PdfReader(file_path)
-    total = len(reader.pages)
-    pdf_slices = []
-    for start in range(0, total, MAX_PAGES):
-        writer = PdfWriter()
-        end = min(start + MAX_PAGES, total)
-        for i in range(start, end):
-            writer.add_page(reader.pages[i])
-        temp = f"{file_path}_chunk_{start}_{end}.pdf"
-        with open(temp, "wb") as f:
-            writer.write(f)
-        pdf_slices.append(temp)
-    return pdf_slices
+from app.utils.log_tools import logger
 
 
 def ocr_pdf_to_markdown(file_path):
-    if _check_pdf(file_path):
-        with open(file_path, "rb") as f:
-            return _send_ocr(f.read())
+    start_time = time.time()
+    logger.info(f"🚀 开始使用ocr加载文件：{Path(file_path).name}为md格式")
+    pipeline = PPStructureV3()
+    output = pipeline.predict(input=file_path)
 
-    chunks = _split_pdf(file_path)
-    results = []
-    for chunk in chunks:
-        with open(chunk, "rb") as f:
-            results.append(_send_ocr(f.read()))
-        os.remove(chunk)
+    markdown_list = []
+    page_count = 0
+    for res in tqdm(output,desc="处理文件中..."):
+        markdown_list.append(res.markdown)
+        page_count += 1
 
-    return "\n".join(results)
+
+    logger.info(f"✅ 共处理 {page_count} 页")
+    final_markdown_string = pipeline.concatenate_markdown_pages(markdown_list)
+
+    end_time = time.time()
+    total_duration = end_time - start_time
+    logger.info("🏁 解析任务完成！")
+    logger.info(f"统计信息 -> 总页数: {page_count} 页 | 运行总时间: {total_duration:.2f} 秒 | 平均每页耗时: {total_duration/page_count:.2f} 秒")
+    return final_markdown_string.get("markdown_texts")
+
 
 if __name__ == "__main__":
-    pdf_path = "/Users/emilyguo/Desktop/TestFiles/589ebf8e5bb13.pdf"
+    pdf_path = "/Users/emilyguo/Desktop/pdf-sample_0.pdf"
     print(ocr_pdf_to_markdown(pdf_path))

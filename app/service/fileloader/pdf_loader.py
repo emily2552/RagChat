@@ -19,7 +19,9 @@ class PDFLoader:
             image_dir: 临时图片存储目录
             dpi: 图像渲染分辨率
         """
+
         self.file_path = file_path
+        # print(f"Tiny在这里测试错误：此时文件路径为：{file_path}")
         self.file_name = os.path.basename(file_path)
 
 
@@ -27,6 +29,7 @@ class PDFLoader:
     def load(self)-> List[DocumentBaseModel]:
 
         logger.info(f"开始使用ocr加载文件：{self.file_name}为md格式")
+        # print(f"Tiny在这里测试错误：进入转化之前的文件路径为：{self.file_path}")
         html_str = ocr_pdf_to_markdown(self.file_path)
         document = DocumentBaseModel(source_file=self.file_name, page_content=html_str)
         logger.info(f"{self.file_name} 文件加载成功")

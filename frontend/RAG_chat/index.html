@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RAG 智能助手 (Markdown渲染版)</title>
+    <title>RAG 智能助手</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
-    
+
     <style>
         :root {
             --primary-color: #2563eb;
@@ -20,418 +21,347 @@
         }
 
         * { box-sizing: border-box; }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            margin: 0;
-            display: flex;
-            height: 100vh;
-            color: var(--text-primary);
-            background-color: var(--main-bg);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            margin: 0; display: flex; height: 100vh;
+            color: var(--text-primary); background-color: var(--main-bg);
         }
 
-        /* ———— Markdown 内容样式优化 ———— */
+        /* Markdown 样式 */
         .markdown-body { font-size: 0.95rem; line-height: 1.6; }
-        .markdown-body p { margin: 0 0 8px 0; }
-        .markdown-body p:last-child { margin-bottom: 0; }
         .markdown-body pre { background: #2d2d2d; color: #ccc; padding: 10px; border-radius: 6px; overflow-x: auto; }
-        .markdown-body code { background: rgba(0,0,0,0.05); padding: 2px 4px; border-radius: 4px; font-family: monospace; font-size: 0.9em; }
-        .user .markdown-body code { background: rgba(255,255,255,0.2); } 
-        .markdown-body ul, .markdown-body ol { margin: 5px 0; padding-left: 20px; }
-        .markdown-body h1, .markdown-body h2, .markdown-body h3 { margin: 10px 0 5px 0; font-size: 1.1em; font-weight: 700; }
-        .markdown-body table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 0.9em; }
+        .markdown-body code { background: rgba(0, 0, 0, 0.05); padding: 2px 4px; border-radius: 4px; font-family: monospace; }
+        .markdown-body table { border-collapse: collapse; width: 100%; margin: 10px 0; }
         .markdown-body th, .markdown-body td { border: 1px solid #ddd; padding: 6px; }
-        .markdown-body th { background-color: #f2f2f2; text-align: left; }
-        
-        /* ———— 侧边栏 ———— */
-        .sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; flex-shrink: 0; height: 100vh; }
-        .sidebar-header { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        
-        .btn-base { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
-        
-        .new-chat-btn { background-color: var(--primary-color); color: white; box-shadow: 0 2px 4px rgba(37,99,235,0.2); }
-        .new-chat-btn:hover { opacity: 0.9; }
 
-        .upload-btn { background-color: white; color: var(--text-primary); border: 1px solid var(--border-color); }
-        .upload-btn:hover { background-color: #f3f4f6; }
+        /* 侧边栏 */
+        .sidebar {
+            width: 280px; background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex; flex-direction: column; flex-shrink: 0;
+        }
+        .sidebar-header { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .btn-base {
+            width: 100%; padding: 12px; border: none; border-radius: 8px;
+            font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .new-chat-btn { background-color: var(--primary-color); color: white; }
+        .upload-btn { background-color: white; border: 1px solid var(--border-color); }
         .upload-btn.processing { color: var(--primary-color); cursor: wait; }
 
         .session-list { flex: 1; overflow-y: auto; padding: 10px; }
-        .session-item { padding: 10px 12px; margin-bottom: 4px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; color: var(--text-primary); display: flex; justify-content: space-between; align-items: center; transition: background 0.15s; }
+        .session-item {
+            padding: 10px; margin-bottom: 4px; border-radius: 6px; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+        }
         .session-item:hover { background-color: #e5e7eb; }
-        .session-item.active { background-color: #dbeafe; color: var(--primary-color); font-weight: 500; }
-        .del-session { opacity: 0; color: #ef4444; padding: 4px; transition: opacity 0.2s; border-radius: 4px; }
-        .del-session:hover { background: #fee2e2; }
+        .session-item.active { background-color: #dbeafe; color: var(--primary-color); }
+        .del-session { color: #ef4444; opacity: 0; padding: 4px; }
         .session-item:hover .del-session { opacity: 1; }
-        .sidebar-footer { padding: 15px; border-top: 1px solid var(--border-color); }
-        .settings-btn { width: 100%; padding: 10px; background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; font-size: 0.9rem; }
-        .settings-btn:hover { background: #e5e7eb; color: var(--text-primary); }
 
-        /* ———— 主聊天区 ———— */
-        .main-content { flex: 1; display: flex; flex-direction: column; background-color: var(--main-bg); position: relative; }
-        .chat-header { height: 60px; padding: 0 20px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; background: #fff; }
-        .chat-title { font-weight: 600; font-size: 1.1rem; }
-        .session-info { font-size: 0.8rem; color: #9ca3af; font-family: monospace; }
-        .messages-container { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth; }
+        /* 主界面 */
+        .main-content { flex: 1; display: flex; flex-direction: column; }
+        .chat-header { height: 60px; padding: 0 20px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
+        .messages-container { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
         .message { display: flex; gap: 12px; max-width: 85%; }
         .message.user { align-self: flex-end; flex-direction: row-reverse; }
-        .message.ai { align-self: flex-start; }
-        .avatar { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; color: white; font-weight: bold; }
+        .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
         .user .avatar { background: var(--primary-color); }
         .ai .avatar { background: #10b981; }
-        .bubble { padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; position: relative; word-break: break-word; min-width: 60px; }
-        .user .bubble { background: var(--primary-color); color: white; border-bottom-right-radius: 2px; }
-        .ai .bubble { background: #f3f4f6; color: #1f2937; border-bottom-left-radius: 2px; }
-        
-        .docs-box { margin-top: 12px; background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 8px; }
-        .doc-item { background: #f9fafb; padding: 10px; border-left: 3px solid #10b981; color: #374151; border-radius: 0 4px 4px 0; cursor: pointer; transition: all 0.2s ease; position: relative; }
-        .doc-item:hover { background: #f0fdf4; }
-        .doc-item .doc-content { max-height: 42px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; text-overflow: ellipsis; font-size: 0.85rem; }
-        .doc-item.expanded .doc-content { max-height: none; -webkit-line-clamp: unset; overflow: visible; }
-        .doc-item::after { content: "点击展开"; position: absolute; right: 10px; top: 8px; font-size: 0.7rem; color: #10b981; background: rgba(255,255,255,0.8); padding: 2px 5px; border-radius: 4px; pointer-events: none; }
-        .doc-item.expanded::after { content: "点击收起"; color: #6b7280; }
+        .bubble { padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; }
+        .user .bubble { background: var(--primary-color); color: white; }
+        .ai .bubble { background: #f3f4f6; }
 
-        .score-tag { display: inline-block; background-color: #d1fae5; color: #047857; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-bottom: 4px; border: 1px solid #a7f3d0; margin-right: 5px; }
-        .file-tag { display: inline-block; background-color: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-bottom: 4px; border: 1px solid #bae6fd; }
+        .docs-box { margin-top: 12px; background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px; }
+        .doc-item { background: #f9fafb; padding: 8px; border-left: 3px solid #10b981; margin-bottom: 5px; cursor: pointer; }
+        .doc-content { font-size: 0.85rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .doc-item.expanded .doc-content { -webkit-line-clamp: unset; }
 
-        .input-area { padding: 20px; border-top: 1px solid var(--border-color); background: #fff; }
-        .input-wrapper { max-width: 800px; margin: 0 auto; display: flex; gap: 10px; position: relative; }
-        .input-wrapper input { flex: 1; padding: 14px 18px; border: 1px solid #e5e7eb; border-radius: 30px; font-size: 1rem; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.03); transition: border 0.2s; }
-        .input-wrapper input:focus { border-color: var(--primary-color); }
-        .send-btn { background: var(--primary-color); color: white; border: none; border-radius: 30px; padding: 0 24px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
-        .send-btn:hover { opacity: 0.9; }
-        .send-btn:disabled { background: #d1d5db; cursor: not-allowed; }
-        .cursor::after { content: '▋'; color: var(--primary-color); animation: blink 1s infinite; margin-left: 2px; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .input-area { padding: 20px; border-top: 1px solid var(--border-color); }
+        .input-wrapper { max-width: 800px; margin: 0 auto; display: flex; gap: 10px; }
+        .input-wrapper input { flex: 1; padding: 12px; border: 1px solid #e5e7eb; border-radius: 25px; outline: none; }
+        .send-btn { background: var(--primary-color); color: white; border: none; border-radius: 25px; padding: 0 20px; cursor: pointer; }
 
-        /* ———— 模态框 ———— */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s; }
-        .modal-overlay.show { display: flex; opacity: 1; }
-        .modal-container { background: white; width: 500px; max-width: 90%; max-height: 85vh; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; transform: translateY(20px); transition: transform 0.3s; }
-        .modal-overlay.show .modal-container { transform: translateY(0); }
-        .modal-header { padding: 15px 20px; border-bottom: 1px solid var(--border-color); font-weight: 700; font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center; }
-        .close-modal { cursor: pointer; color: #9ca3af; font-size: 1.5rem; line-height: 1; }
-        .modal-body { padding: 20px; overflow-y: auto; }
-        .modal-footer { padding: 15px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; background: #f9fafb; }
-        .save-btn { background: var(--primary-color); color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-weight: 500; }
-        .config-section-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 10px; color: #374151; margin-top: 15px; }
-        .config-section-title:first-child { margin-top: 0; }
-        .input-group label { display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 5px; }
-        .input-group input { width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.9rem; margin-bottom: 10px; outline: none; }
+        /* 模态框 */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-container { background: white; width: 450px; border-radius: 12px; padding: 20px; max-height: 90vh; overflow-y: auto; }
+        .input-group { margin-bottom: 12px; }
+        .input-group label { display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px; }
+        .input-group input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; }
+        .config-title { font-weight: bold; margin: 15px 0 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
     </style>
 </head>
-<body>
 
+<body>
     <div class="sidebar">
         <div class="sidebar-header">
-            <button class="btn-base new-chat-btn" onclick="createNewSession()">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
-                新对话
-            </button>
-            <button class="btn-base upload-btn" id="uploadBtn" onclick="triggerFileSelect()">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v8"></path></svg>
-                上传知识库文件
-            </button>
+            <button class="btn-base new-chat-btn" onclick="createNewSession()">+ 新对话</button>
+            <button class="btn-base upload-btn" id="uploadBtn" onclick="document.getElementById('fileInput').click()">上传知识库文件</button>
             <input type="file" id="fileInput" style="display: none;" onchange="handleFileUpload(event)" multiple>
         </div>
         <div class="session-list" id="sessionList"></div>
-        <div class="sidebar-footer">
-            <button class="settings-btn" onclick="openSettings()">
-                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                RAG 设置
-            </button>
+        <div class="sidebar-footer" style="padding: 15px;">
+            <button class="btn-base upload-btn" onclick="openSettings()">⚙️ RAG 设置</button>
         </div>
     </div>
 
     <div class="main-content">
         <div class="chat-header">
-            <div class="chat-title">RAG 助手</div>
-            <div class="session-info" id="sessionIdDisplay"></div>
+            <div style="font-weight: 600;">RAG 助手</div>
+            <div id="sessionIdDisplay" style="font-size: 0.8rem; color: #9ca3af;"></div>
         </div>
         <div class="messages-container" id="messagesList"></div>
         <div class="input-area">
             <div class="input-wrapper">
-                <input type="text" id="userInput" placeholder="输入你的问题..." autocomplete="off">
+                <input type="text" id="userInput" placeholder="输入问题...">
                 <button id="sendBtn" class="send-btn" onclick="handleSend()">发送</button>
             </div>
         </div>
     </div>
 
-    <div class="modal-overlay" id="configModal" onclick="closeSettings(event)">
-        <div class="modal-container" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <span>RAG 参数配置</span>
-                <span class="close-modal" onclick="closeSettings()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div class="config-section-title">知识库设置</div>
-                <div class="input-group"><label>Collection Name</label><input type="text" id="collection" value="TestInfo_1024" onchange="saveConfig()"></div>
+    <div class="modal-overlay" id="configModal">
+        <div class="modal-container">
+            <h3 style="margin-top:0">RAG 参数配置</h3>
+            <div class="config-title">知识库</div>
+            <div class="input-group"><label>Collection</label><input type="text" id="collection" value="TestInfo_1024"></div>
 
-                <div class="config-section-title">Embedding 模型</div>
-                <div class="input-group"><label>Provider</label><input type="text" id="emb_provider" value="siliconflow" onchange="saveConfig()"></div>
-                <div class="input-group"><label>Model Name</label><input type="text" id="emb_model" value="BAAI/bge-m3" onchange="saveConfig()"></div>
-                <div class="input-group"><label>Base URL</label><input type="text" id="emb_base_url" value="https://api.siliconflow.cn/v1/embeddings" onchange="saveConfig()"></div>
-                <div class="input-group"><label>API Key</label><input type="password" id="emb_key" placeholder="sk-..." onchange="saveConfig()"></div>
+            <div class="config-title">Embedding 模型 (用于上传)</div>
+            <div class="input-group"><label>Provider</label><input type="text" id="emb_provider" value="siliconflow"></div>
+            <div class="input-group"><label>Model Name</label><input type="text" id="emb_model" value="BAAI/bge-m3"></div>
+            <div class="input-group"><label>Base URL</label><input type="text" id="emb_base_url" value="https://api.siliconflow.cn/v1/embeddings"></div>
+            <div class="input-group"><label>API Key</label><input type="password" id="emb_key" placeholder="sk-..."></div>
 
-                <div class="config-section-title">Chat LLM</div>
-                <div class="input-group"><label>Provider</label><input type="text" id="llm_provider" value="openai" onchange="saveConfig()"></div>
-                <div class="input-group"><label>Model Name</label><input type="text" id="llm_model" value="Pro/zai-org/GLM-4.7" onchange="saveConfig()"></div>
-                <div class="input-group"><label>Base URL</label><input type="text" id="llm_base_url" value="https://api.siliconflow.cn/v1" onchange="saveConfig()"></div>
-                <div class="input-group"><label>API Key</label><input type="password" id="llm_key" placeholder="sk-..." onchange="saveConfig()"></div>
-            </div>
-            <div class="modal-footer">
-                <button class="save-btn" onclick="closeSettings()">保存并关闭</button>
-            </div>
+            <div class="config-title">Chat LLM (用于对话)</div>
+            <div class="input-group"><label>Provider</label><input type="text" id="llm_provider" value="openai"></div>
+            <div class="input-group"><label>Model Name</label><input type="text" id="llm_model" value="Pro/zai-org/GLM-4.7"></div>
+            <div class="input-group"><label>Base URL</label><input type="text" id="llm_base_url" value="https://api.siliconflow.cn/v1"></div>
+            <div class="input-group"><label>API Key</label><input type="password" id="llm_key" placeholder="sk-..."></div>
+
+            <button class="btn-base new-chat-btn" onclick="closeSettings()">保存并关闭</button>
         </div>
     </div>
 
     <script>
-        marked.setOptions({ breaks: true, gfm: true });
+        const API_CHAT = "http://localhost:8000/stream_chat";
+        const API_UPLOAD = "http://localhost:8000/upload_file";
 
-        const API_ENDPOINT = "http://localhost:8000/stream_chat";
-        const UPLOAD_ENDPOINT = "http://localhost:8000/upload_file";
-        const STORAGE_SESSIONS = "rag_pro_sessions";
-        const STORAGE_CONFIG = "rag_pro_config";
-        const STORAGE_ACTIVE_ID = "rag_pro_active_id";
+        let sessions = JSON.parse(localStorage.getItem('rag_sessions') || '{}');
+        let currentSessionId = localStorage.getItem('rag_active_id');
 
-        let sessions = {}; 
-        let currentSessionId = null;
-
-        const els = {
-            sessionList: document.getElementById('sessionList'),
-            messagesList: document.getElementById('messagesList'),
-            userInput: document.getElementById('userInput'),
-            sendBtn: document.getElementById('sendBtn'),
-            uploadBtn: document.getElementById('uploadBtn'),
-            fileInput: document.getElementById('fileInput'),
-            sessionIdDisplay: document.getElementById('sessionIdDisplay'),
-            modal: document.getElementById('configModal'),
-            collection: document.getElementById('collection'),
-            emb_provider: document.getElementById('emb_provider'),
-            emb_model: document.getElementById('emb_model'),
-            emb_base_url: document.getElementById('emb_base_url'),
-            emb_key: document.getElementById('emb_key'),
-            llm_provider: document.getElementById('llm_provider'),
-            llm_model: document.getElementById('llm_model'),
-            llm_base_url: document.getElementById('llm_base_url'),
-            llm_key: document.getElementById('llm_key'),
+        // 初始化
+        window.onload = () => {
+            loadConfig();
+            renderSessionList();
+            if (currentSessionId && sessions[currentSessionId]) {
+                switchSession(currentSessionId);
+            } else {
+                createNewSession();
+            }
         };
 
-        window.addEventListener('DOMContentLoaded', () => {
-            loadConfig();
-            loadSessions();
-            if (Object.keys(sessions).length === 0) {
-                createNewSession();
-            } else {
-                let lastActive = localStorage.getItem(STORAGE_ACTIVE_ID);
-                if (sessions[lastActive]) switchSession(lastActive);
-                else switchSession(Object.keys(sessions)[0]);
+        function openSettings() { document.getElementById('configModal').classList.add('show'); }
+        function closeSettings() {
+            saveConfig();
+            document.getElementById('configModal').classList.remove('show');
+        }
+
+        function saveConfig() {
+            const config = {
+                collection: document.getElementById('collection').value,
+                emb_provider: document.getElementById('emb_provider').value,
+                emb_model: document.getElementById('emb_model').value,
+                emb_base_url: document.getElementById('emb_base_url').value,
+                emb_key: document.getElementById('emb_key').value,
+                llm_provider: document.getElementById('llm_provider').value,
+                llm_model: document.getElementById('llm_model').value,
+                llm_base_url: document.getElementById('llm_base_url').value,
+                llm_key: document.getElementById('llm_key').value
+            };
+            localStorage.setItem('rag_config', JSON.stringify(config));
+        }
+
+        function loadConfig() {
+            const config = JSON.parse(localStorage.getItem('rag_config') || '{}');
+            if (config.collection) {
+                for (let key in config) {
+                    const el = document.getElementById(key);
+                    if (el) el.value = config[key];
+                }
             }
-            els.userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSend(); });
-        });
+        }
 
-        function triggerFileSelect() { els.fileInput.click(); }
-
-        // ————— 核心修改：文件上传处理 —————
+        // ———————— 核心修复：文件上传函数 ————————
         async function handleFileUpload(event) {
             const files = event.target.files;
             if (!files.length) return;
 
-            // 构造模拟路径 (文件名)
-            const filePaths = Array.from(files).map(f => f.name); 
+            // 1. 实时获取所有表单值，确保字段名与后端一致
+            const formData = new FormData();
+            formData.append('collection', document.getElementById('collection').value);
+            formData.append('embedding_base_url', document.getElementById('emb_base_url').value);
+            formData.append('embedding_model_name', document.getElementById('emb_model').value);
+            formData.append('embedding_api_key', document.getElementById('emb_key').value);
+            formData.append('embedding_model_provider', document.getElementById('emb_provider').value);
+
+            formData.append('chat_model', document.getElementById('llm_model').value);
+            formData.append('chat_model_provider', document.getElementById('llm_provider').value);
+            formData.append('chat_base_url', document.getElementById('llm_base_url').value);
+            formData.append('chat_api_key', document.getElementById('llm_key').value);
+
+            // 2. 添加文件
+            for (let i = 0; i < files.length; i++) {
+                formData.append('files', files[i]);
+            }
+
+            // 3. 校验关键字段
+            if (!document.getElementById('emb_key').value) {
+                alert("请先填写 Embedding API Key！");
+                return;
+            }
+
+            const btn = document.getElementById('uploadBtn');
+            btn.innerText = "正在入库...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(API_UPLOAD, {
+                    method: 'POST',
+                    body: formData // 浏览器会自动设置 Content-Type: multipart/form-data
+                });
+
+                if (response.ok) {
+                    const res = await response.json();
+                    alert("✅ 上传成功：" + (res.message || "文件已处理"));
+                } else {
+                    const err = await response.json();
+                    alert("❌ 失败 (422/500)：" + JSON.stringify(err.detail || err.message));
+                }
+            } catch (e) {
+                alert("❌ 网络连接失败：" + e.message);
+            } finally {
+                btn.innerText = "上传知识库文件";
+                btn.disabled = false;
+                event.target.value = '';
+            }
+        }
+
+        // ———————— 聊天逻辑 ————————
+        function createNewSession() {
+            const id = Date.now().toString();
+            sessions[id] = { title: "新对话", messages: [] };
+            switchSession(id);
+        }
+
+        function switchSession(id) {
+            currentSessionId = id;
+            localStorage.setItem('rag_active_id', id);
+            renderSessionList();
+            renderMessages();
+        }
+
+        function renderSessionList() {
+            const list = document.getElementById('sessionList');
+            list.innerHTML = '';
+            Object.keys(sessions).reverse().forEach(id => {
+                const item = document.createElement('div');
+                item.className = `session-item ${id === currentSessionId ? 'active' : ''}`;
+                item.innerHTML = `<span>${sessions[id].title}</span>`;
+                item.onclick = () => switchSession(id);
+                list.appendChild(item);
+            });
+        }
+
+        function renderMessages() {
+            const container = document.getElementById('messagesList');
+            container.innerHTML = '';
+            const msgs = sessions[currentSessionId].messages;
+            msgs.forEach(m => appendMessageDOM(m.role, m.content, m.docs));
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function appendMessageDOM(role, content, docs = []) {
+            const container = document.getElementById('messagesList');
+            const div = document.createElement('div');
+            div.className = `message ${role}`;
+            div.innerHTML = `
+                <div class="avatar">${role === 'user' ? 'U' : 'AI'}</div>
+                <div class="bubble">
+                    <div class="markdown-body">${marked.parse(content)}</div>
+                    ${docs.length ? '<div class="docs-box">📚 参考了 ' + docs.length + ' 条数据</div>' : ''}
+                </div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            return div;
+        }
+
+        async function handleSend() {
+            const input = document.getElementById('userInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            input.value = '';
+            const session = sessions[currentSessionId];
+            session.messages.push({ role: 'user', content: text });
+            if (session.title === "新对话") session.title = text.substring(0, 10);
+
+            renderMessages();
+            const aiDiv = appendMessageDOM('ai', '正在思考...');
+            const bubble = aiDiv.querySelector('.markdown-body');
 
             const payload = {
-                file_paths: filePaths,
-                collection: els.collection.value,
+                session_id: currentSessionId,
+                message: text,
+                collection: document.getElementById('collection').value,
                 embedding: {
-                    base_url: els.emb_base_url.value,
-                    model_name: els.emb_model.value,
-                    api_key: els.emb_key.value,
-                    model_provider: els.emb_provider.value
+                    base_url: document.getElementById('emb_base_url').value,
+                    model_name: document.getElementById('emb_model').value,
+                    api_key: document.getElementById('emb_key').value,
+                    model_provider: document.getElementById('emb_provider').value
                 },
                 chat_config: {
-                    model: els.llm_model.value,
-                    model_provider: els.llm_provider.value,
-                    base_url: els.llm_base_url.value,
-                    api_key: els.llm_key.value
+                    model: document.getElementById('llm_model').value,
+                    model_provider: document.getElementById('llm_provider').value,
+                    base_url: document.getElementById('llm_base_url').value,
+                    api_key: document.getElementById('llm_key').value
                 }
             };
 
-            setUploadLoading(true);
-
             try {
-                const response = await fetch(UPLOAD_ENDPOINT, {
+                const res = await fetch(API_CHAT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
-                const result = await response.json();
-                
-                // ———— 关键修改：使用 alert 弹窗 ————
-                alert("✅ 文件处理成功！\n消息: " + (result.message || "文件已全部入库。"));
+                const reader = res.body.getReader();
+                let fullText = "";
+                bubble.innerHTML = "";
 
-            } catch (err) {
-                // ———— 关键修改：失败也使用弹窗 ————
-                alert("❌ 文件处理失败！\n错误详情: " + err.message);
-            } finally {
-                setUploadLoading(false);
-                els.fileInput.value = ''; 
-            }
-        }
-
-        function setUploadLoading(bool) {
-            if (bool) {
-                els.uploadBtn.classList.add('processing');
-                els.uploadBtn.innerText = "正在入库...";
-                els.uploadBtn.disabled = true;
-            } else {
-                els.uploadBtn.classList.remove('processing');
-                els.uploadBtn.innerHTML = `<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v8"></path></svg> 上传知识库文件`;
-                els.uploadBtn.disabled = false;
-            }
-        }
-
-        // ————— 其余逻辑保持不变 —————
-        function openSettings() { els.modal.classList.add('show'); }
-        function closeSettings(e) { els.modal.classList.remove('show'); saveConfig(); }
-        function saveConfig() {
-            const config = {
-                collection: els.collection.value,
-                embedding: { provider: els.emb_provider.value, model: els.emb_model.value, base_url: els.emb_base_url.value, key: els.emb_key.value },
-                llm: { provider: els.llm_provider.value, model: els.llm_model.value, base_url: els.llm_base_url.value, key: els.llm_key.value }
-            };
-            localStorage.setItem(STORAGE_CONFIG, JSON.stringify(config));
-        }
-        function loadConfig() {
-            const raw = localStorage.getItem(STORAGE_CONFIG);
-            if (raw) {
-                const c = JSON.parse(raw);
-                els.collection.value = c.collection || '';
-                if(c.embedding) {
-                    els.emb_provider.value = c.embedding.provider || ''; els.emb_model.value = c.embedding.model || ''; els.emb_base_url.value = c.embedding.base_url || ''; els.emb_key.value = c.embedding.key || '';
-                }
-                if(c.llm) {
-                    els.llm_provider.value = c.llm.provider || ''; els.llm_model.value = c.llm.model || ''; els.llm_base_url.value = c.llm.base_url || ''; els.llm_key.value = c.llm.key || '';
-                }
-            }
-        }
-        function generateUUID() { return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { var r = Math.random()*16|0, v=c=='x'?r:(r&0x3|0x8); return v.toString(16); }); }
-        function createNewSession() {
-            const id = generateUUID();
-            sessions[id] = { id: id, title: `新对话 ${new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute:'2-digit'})}`, messages: [] };
-            saveSessions(); switchSession(id);
-        }
-        function switchSession(id) {
-            currentSessionId = id; localStorage.setItem(STORAGE_ACTIVE_ID, id);
-            els.sessionIdDisplay.textContent = `ID: ${id.slice(0, 8)}...`;
-            renderSessionList(); renderMessages(sessions[id].messages);
-        }
-        function deleteSession(e, id) {
-            e.stopPropagation(); if(!confirm("确认删除？")) return;
-            delete sessions[id]; saveSessions();
-            if (id === currentSessionId) {
-                const remaining = Object.keys(sessions);
-                if (remaining.length > 0) switchSession(remaining[0]);
-                else createNewSession();
-            } else { renderSessionList(); }
-        }
-        function saveSessions() { localStorage.setItem(STORAGE_SESSIONS, JSON.stringify(sessions)); }
-        function loadSessions() { const raw = localStorage.getItem(STORAGE_SESSIONS); if (raw) sessions = JSON.parse(raw); }
-        function renderSessionList() {
-            els.sessionList.innerHTML = '';
-            Object.keys(sessions).reverse().forEach(id => {
-                const s = sessions[id];
-                const div = document.createElement('div');
-                div.className = `session-item ${id === currentSessionId ? 'active' : ''}`;
-                div.innerHTML = `<div style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.title}</div><div class="del-session" onclick="deleteSession(event, '${id}')"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></div>`;
-                div.onclick = () => switchSession(id);
-                els.sessionList.appendChild(div);
-            });
-        }
-        function renderMessages(msgs) {
-            els.messagesList.innerHTML = '';
-            if (msgs.length === 0) {
-                els.messagesList.innerHTML = `<div style="text-align:center;color:#9ca3af;margin-top:100px;"><div style="font-size:3rem;margin-bottom:10px;">👋</div>配置参数后，开始一个新的话题吧</div>`;
-                return;
-            }
-            msgs.forEach(msg => appendMessageDOM(msg.role, msg.content, msg.docs));
-            scrollToBottom();
-        }
-        function parseAndSanitize(text) {
-            const rawHtml = marked.parse(text);
-            return DOMPurify.sanitize(rawHtml);
-        }
-        async function handleSend() {
-            const text = els.userInput.value.trim(); if (!text) return;
-            els.userInput.value = ''; setLoading(true);
-            const currentSess = sessions[currentSessionId];
-            if (currentSess.messages.length === 0) { els.messagesList.innerHTML = ''; }
-            currentSess.messages.push({ role: 'user', content: text });
-            if (currentSess.messages.length === 1) { currentSess.title = text.length > 12 ? text.substring(0, 12) + "..." : text; renderSessionList(); }
-            saveSessions();
-            appendMessageDOM('user', text);
-            const { bubbleContent, bubbleContainer } = appendMessageDOM('ai', '', [], true); 
-            bubbleContainer.classList.add('cursor'); 
-            scrollToBottom();
-            const aiMsgObj = { role: 'ai', content: '', docs: [] };
-            currentSess.messages.push(aiMsgObj); 
-            const payload = {
-                session_id: currentSessionId, message: text, collection: els.collection.value,
-                embedding: { base_url: els.emb_base_url.value, model_name: els.emb_model.value, api_key: els.emb_key.value, model_provider: els.emb_provider.value },
-                chat_config: { model: els.llm_model.value, model_provider: els.llm_provider.value, base_url: els.llm_base_url.value, api_key: els.llm_key.value, temperature: 0.7 }
-            };
-            try {
-                const response = await fetch(API_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                const reader = response.body.getReader(); const decoder = new TextDecoder(); let buffer = "";
                 while (true) {
-                    const { done, value } = await reader.read(); if (done) break;
-                    buffer += decoder.decode(value, { stream: true });
-                    let lines = buffer.split('\n'); buffer = lines.pop(); 
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    const chunk = new TextDecoder().decode(value);
+                    const lines = chunk.split('\n');
                     for (const line of lines) {
                         if (!line.trim()) continue;
-                        try {
-                            const json = JSON.parse(line);
-                            if (json.type === 'docs') { aiMsgObj.docs = json.data; renderDocs(bubbleContainer, json.data); } 
-                            else if (json.type === 'text') { aiMsgObj.content += json.data; bubbleContent.innerHTML = parseAndSanitize(aiMsgObj.content); }
-                        } catch (e) { console.error("Parse Error", e); }
+                        const data = JSON.parse(line);
+                        if (data.type === 'text') {
+                            fullText += data.data;
+                            bubble.innerHTML = marked.parse(fullText);
+                        }
                     }
-                    scrollToBottom();
                 }
-                bubbleContainer.classList.remove('cursor'); saveSessions();
-            } catch (err) { bubbleContainer.classList.remove('cursor'); bubbleContent.innerText += `\n[错误: ${err.message}]`; } finally { setLoading(false); }
+                session.messages.push({ role: 'ai', content: fullText });
+                localStorage.setItem('rag_sessions', JSON.stringify(sessions));
+            } catch (e) {
+                bubble.innerHTML = "❌ 发生错误：" + e.message;
+            }
         }
-        function appendMessageDOM(role, text, docs = [], returnRefs = false) {
-            const div = document.createElement('div'); div.className = `message ${role}`;
-            const avatar = document.createElement('div'); avatar.className = 'avatar'; avatar.innerText = role === 'user' ? 'ME' : 'AI';
-            const bubble = document.createElement('div'); bubble.className = 'bubble';
-            const content = document.createElement('div'); content.className = 'bubble-content markdown-body'; 
-            content.innerHTML = parseAndSanitize(text);
-            bubble.appendChild(content); 
-            if (docs && docs.length > 0) renderDocs(bubble, docs);
-            div.appendChild(avatar); div.appendChild(bubble); els.messagesList.appendChild(div);
-            if (returnRefs) return { bubbleContent: content, bubbleContainer: bubble };
-        }
-        function renderDocs(container, docs) {
-            if (container.querySelector('.docs-box')) return;
-            const box = document.createElement('div'); box.className = 'docs-box';
-            box.innerHTML = `<div style="font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:4px">📚 参考资料</div>`;
-            const displayDocs = docs.length > 5 ? docs.slice(0, 5) : docs;
-            displayDocs.forEach((d) => {
-                const text = d.chunk_text || "";
-                const score = d.similarity ? parseFloat(d.similarity).toFixed(4) : "N/A";
-                const fileName = d.file_name || "未知来源";
-                const renderedText = parseAndSanitize(text);
-                const docItem = document.createElement('div');
-                docItem.className = 'doc-item';
-                docItem.onclick = function() { this.classList.toggle('expanded'); };
-                docItem.innerHTML = `<div style="display:flex; flex-wrap:wrap; align-items:center;"><span class="score-tag">Sim: ${score}</span><span class="file-tag">📄 ${fileName}</span></div><div class="doc-content markdown-body">${renderedText}</div>`;
-                box.appendChild(docItem);
-            });
-            container.appendChild(box);
-        }
-        function scrollToBottom() { els.messagesList.scrollTop = els.messagesList.scrollHeight; }
-        function setLoading(bool) { els.userInput.disabled = bool; els.sendBtn.disabled = bool; }
     </script>
 </body>
 </html>

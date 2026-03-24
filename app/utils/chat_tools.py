@@ -1,4 +1,4 @@
-from langchain.chat_models import init_chat_model
+from langchain_classic.chat_models import init_chat_model
 from langchain_core.prompts import ChatPromptTemplate
 from app import config
 from app.ptompts.rag_prompt import intention_prompt

@@ -1,13 +1,16 @@
+import os
 import json
+import tempfile
 from typing import List
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
+from langchain_classic.chat_models import init_chat_model
 from pydantic import BaseModel, Field
 from starlette.responses import StreamingResponse
 
-from langchain.chat_models import init_chat_model
+
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import RunnableWithMessageHistory, RunnableConfig
 from langchain_core.chat_history import InMemoryChatMessageHistory
@@ -226,14 +229,62 @@ async def stream_chat_api(req: RAGChatRequest):
 
 
 @app.post("/upload_file")
-def up_load_files(payload: FileUploadRequest):
-    for file_name in payload.file_paths:
-        file_path = "/Users/emilyguo/Desktop/TestFiles/" + file_name
-        logger.info(f"开始处理文件：{file_name}")
-        embedding_model = EmbeddingModel(**payload.embedding.to_dict())
-        process_file(file_path,payload.collection,embedding_model)
-        logger.info(f"处理完成文件：{file_name}")
-    return {"message": "true"}
+async def upload_file(
+    collection: str = Form(...),
+    files: List[UploadFile] = File(...),
+    embedding_base_url: str = Form(...),
+    embedding_model_name: str = Form(...),
+    embedding_api_key: str = Form(...),
+    embedding_model_provider: str = Form(...),
+    chat_model: str = Form(...),
+    chat_model_provider: str = Form(...),
+    chat_base_url: str = Form(...),
+    chat_api_key: str = Form(...)
+):
+    # 创建临时目录存储上传的文件
+    temp_dir = tempfile.mkdtemp()
+
+    try:
+        # 保存上传的文件到临时目录
+        file_paths = []
+        for uploaded_file in files:
+            file_path = os.path.join(temp_dir, uploaded_file.filename)
+            with open(file_path, "wb") as f:
+                content = await uploaded_file.read()
+                f.write(content)
+            file_paths.append(file_path)
+            logger.info(f"已保存上传的文件：{uploaded_file.filename}")
+            print(f"Tiny在这里测试错误：进入转化之前的文件路径为：{file_path}")
+
+        # 构建 embedding 配置
+        embedding_config = {
+            "base_url": embedding_base_url,
+            "model_name": embedding_model_name,
+            "api_key": embedding_api_key,
+            "model_provider": embedding_model_provider
+        }
+
+        # 初始化 embedding 模型
+        embedding_model = EmbeddingModel(**embedding_config)
+
+        # 处理每个文件
+        for file_path in file_paths:
+            file_name = os.path.basename(file_path)
+            logger.info(f"开始处理文件：{file_name}")
+            process_file(file_path, collection, embedding_model)
+            logger.info(f"处理完成文件：{file_name}")
+
+        return {"message": "true", "success": True}
+
+    except Exception as e:
+        logger.error(f"文件处理失败：{str(e)}")
+        return {"message": f"文件处理失败：{str(e)}", "success": False}
+
+    finally:
+        # 清理临时目录
+        import shutil
+        if os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir)
 
 
 # ————— 启动入口 —————

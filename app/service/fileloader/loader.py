@@ -9,11 +9,11 @@ class UniversalFileLoader:
     """
 
     def __init__(self, file_path: str):
-        self.file_path = file_path.lower()
+        self.file_path = file_path
 
     def load(self) -> list[DocumentBaseModel]:
         if self.file_path.endswith(".pdf"):
-            logger.info("文件为pdf，使用PDFOCRLoader对文件进行加载")
+            logger.info(f"{self.file_path}文件为pdf，使用PDFOCRLoader对文件进行加载")
             loader = PDFLoader(self.file_path)
         elif self.file_path.endswith(".docx"):
             logger.info("文件为docx，使用WordLoader")

@@ -3,4 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="RagDemo" />
   </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="Remote Python 3.12.3 (sftp://emily@iot.doublechaintech.com:20000/usr/bin/python3)" project-jdk-type="Python SDK" />
 </project>
